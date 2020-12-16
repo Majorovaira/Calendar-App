@@ -1,0 +1,32 @@
+server:
+  port: 8090
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:8081/calendar
+    driver-class-name: org.postgresql.Driver
+    password: root
+    username: root
+
+  liquibase:
+    change-log: classpath:db.changelog.db.changelog-master.xml
+    url: jdbc:postgresql://localhost:8081/calendar
+    user: root
+    password: root
+    enabled: true
+
+  jpa:
+    hibernate:
+      ddl-auto: none
+    show-sql: true
+    open-in-view: false
+    database-platform: org.hibernate.dialect.PostgreSQL9Dialect
+
+secret.key:
+  secret
+
+auth.token.life:
+  120000
+
+refresh.token.life:
+  2592000000
