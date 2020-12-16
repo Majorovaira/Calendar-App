@@ -42,7 +42,4 @@ public class User {
     }, inverseJoinColumns = {@JoinColumn(name = "task_id", referencedColumnName = "id")})
     private List<Task> tasks;
 
-    @ElementCollection(fetch = FetchType.EAGER)
-    private List<Role> roles;
-
 }

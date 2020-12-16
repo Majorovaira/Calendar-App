@@ -10,7 +10,7 @@ public interface UserService {
    User getUserById(long id);
    User getUserByName(String name);
    User register(User user);
-   List<User> getAllUsers();
+   Iterable<User> getAllUsers();
    void delete(Long id);
 
 }

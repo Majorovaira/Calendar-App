@@ -3,6 +3,7 @@ package by.innowise.calendarapp.config;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -24,47 +25,48 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS);
 
         http.authorizeRequests()
-                .antMatchers("/authorization/login").permitAll()
                 .anyRequest().authenticated();
-        http.exceptionHandling().accessDeniedPage("/login");
 
-     //   http.apply(new JwtTo)
+
     }
 
+
     @Bean
-    @Override
-    protected UserDetailsService userDetailsService() {
+    public UserDetailsService inMemoryUserDetailsManager() {
         UserDetails manager = User.withUsername("manager")
                 .passwordEncoder(passwordEncoder()::encode)
                 .password("1111")
-                .roles("MANAGER")
                 .build();
         UserDetails user = User.withUsername("user")
                 .passwordEncoder(passwordEncoder()::encode)
                 .password("2222")
-                .roles("USER")
                 .build();
         UserDetails admin = User.withUsername("admin")
                 .passwordEncoder(passwordEncoder()::encode)
                 .password("3333")
-                .roles("ADMIN")
                 .build();
         InMemoryUserDetailsManager memoryUserDetailsManager = new InMemoryUserDetailsManager();
         memoryUserDetailsManager.createUser(manager);
         memoryUserDetailsManager.createUser(user);
         memoryUserDetailsManager.createUser(admin);
-
         return memoryUserDetailsManager;
     }
+
 
     @Bean
     public PasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder(12);
     }
 
-//    @Bean
-//    @Override
-//    public AuthenticationManager authenticationManagerBean() throws Exception {
-//        return super.authenticationManagerBean();
-//    }
+    @Bean
+    @Override
+    public AuthenticationManager authenticationManagerBean() throws Exception {
+        return super.authenticationManagerBean();
+    }
+
+    @Override
+    protected void configure(AuthenticationManagerBuilder auth) throws Exception {
+        auth.parentAuthenticationManager(authenticationManagerBean())
+                .userDetailsService(userDetailsService());
+    }
 }

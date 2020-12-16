@@ -4,8 +4,8 @@ import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -17,11 +17,15 @@ import java.io.IOException;
 
 public class CustomJwtAuthenticationFilter extends OncePerRequestFilter {
 
-    private JwtTokenProvider jwtTokenProvider;
+
+    private final UserDetailsService userDetailsService;
+
+    private final JwtTokenProvider jwtTokenProvider;
 
     @Autowired
-    public CustomJwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider) {
+    public CustomJwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, UserDetailsService userDetailsService) {
         this.jwtTokenProvider = jwtTokenProvider;
+        this.userDetailsService = userDetailsService;
     }
 
     @Override
@@ -29,10 +33,10 @@ public class CustomJwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String jwtToken = extractJwtFromRequest(httpServletRequest);
             if (StringUtils.hasText(jwtToken) && jwtTokenProvider.validateToken(jwtToken)) {
-                UserDetails userDetails = new User(jwtTokenProvider.getUsernameFromToken(jwtToken), "", jwtTokenProvider.getRolesFromToken(jwtToken));
+                UserDetails userDetails = userDetailsService.loadUserByUsername(jwtTokenProvider.getUsernameFromToken(jwtToken));
                 UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities()
-                );
+                        userDetails.getUsername(), userDetails.getPassword());
+
                 SecurityContextHolder.getContext().setAuthentication(token);
             }
         }
@@ -54,7 +58,7 @@ public class CustomJwtAuthenticationFilter extends OncePerRequestFilter {
 
     private void allowForRefreshToken(ExpiredJwtException e, HttpServletRequest httpServletRequest) {
         UsernamePasswordAuthenticationToken usernamePasswordAuthenticationToken = new UsernamePasswordAuthenticationToken(
-                null, null, null);
+                null, null);
         SecurityContextHolder.getContext().setAuthentication(usernamePasswordAuthenticationToken);
         httpServletRequest.setAttribute("claims", e.getClaims());
 
