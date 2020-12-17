@@ -5,6 +5,8 @@ import by.innowise.calendarapp.repositories.UserRepository;
 import by.innowise.calendarapp.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 
 @Service
 public class UserServiceImplDB implements UserService {

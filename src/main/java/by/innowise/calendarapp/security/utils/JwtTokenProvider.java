@@ -1,4 +1,4 @@
-package by.innowise.calendarapp.security;
+package by.innowise.calendarapp.security.utils;
 
 
 import io.jsonwebtoken.*;
@@ -25,11 +25,11 @@ public class JwtTokenProvider {
 
 
 
-    public String generateToken(UserDetails userDetails) {
+    public String generateToken(String userName) {
 
 
         return Jwts.builder()
-                .setSubject(userDetails.getUsername())
+                .setSubject(userName)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expirationAuthToken))
                 .signWith(SignatureAlgorithm.HS512, secret)

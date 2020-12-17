@@ -1,4 +1,4 @@
-package by.innowise.calendarapp.security;
+package by.innowise.calendarapp.security.utils;
 
 import org.springframework.security.config.core.GrantedAuthorityDefaults;
 import org.springframework.security.core.GrantedAuthority;
