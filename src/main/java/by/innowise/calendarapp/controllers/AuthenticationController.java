@@ -25,6 +25,7 @@ import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.util.StringUtils;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.context.annotation.RequestScope;
 
@@ -50,34 +51,24 @@ public class AuthenticationController {
     private JwtTokenProvider jwtTokenProvider;
 
     @PostMapping(value = "/authenticate")
-    public ResponseEntity<?> createAuthenticationToken(@RequestBody UserResponse userResponse) throws Exception {
-   //     System.out.println(userResponse.get(HttpHeaders.AUTHORIZATION));
+    public ResponseEntity<?> createAuthenticationToken(@RequestHeader("Authorization") String userPassword) throws Exception {
+        String[] userAndPasswordEncode = getUsernameAndPasswordFromHeaders(userPassword).split(":");
+        String userName = userAndPasswordEncode[0];
+        String password = userAndPasswordEncode[1];
        try {
-           System.out.println(userResponse.getName() + " response " + userResponse.getPassword());
-           System.out.println(authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userResponse.getName(), userResponse.getPassword(), List.of(Authorities.AUTHORITY))));
-
+           authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userName, password, List.of(Authorities.AUTHORITY)));
        }
-
        catch (DisabledException e) {
-
            throw new Exception("USER_DISABLED", e);
-
        }
        catch (BadCredentialsException e) {
-
            throw new Exception("INVALID_CREDENTIALS", e);
-
        }
-        UserDetails userDetails = userDetailsService.loadUserByUsername(userResponse.getName());
-
-
+        UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
         String accessToken = jwtTokenProvider.generateToken(userDetails);
         String refreshToken = jwtTokenProvider.getRefreshToken(userDetails.getUsername());
 
 
-
-//        return ResponseEntity.ok("ok");
-//        return ResponseEntity.ok(accessToken);
         return ResponseEntity.ok()
                 .header(HttpHeaders.AUTHORIZATION, accessToken)
                 .body(refreshToken);
@@ -99,4 +90,13 @@ public class AuthenticationController {
         }
         return expectedMap;
     }
+
+    private String getUsernameAndPasswordFromHeaders(String header) throws Exception {
+        if(StringUtils.hasText(header) && header.contains("Basic ")) {
+            String userNameBase64 = header.split(" ")[1];
+            return new String(Base64.getDecoder().decode(userNameBase64.getBytes()));
+        }
+        throw new Exception("NO VALID CREDITS IN HEADERS");
+    }
+
 }
