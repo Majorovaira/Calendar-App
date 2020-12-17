@@ -2,6 +2,7 @@ package by.innowise.calendarapp.config;
 
 import by.innowise.calendarapp.security.Authorities;
 import by.innowise.calendarapp.security.CustomJwtAuthenticationFilter;
+import by.innowise.calendarapp.security.CustomUserServiceDetails;
 import by.innowise.calendarapp.services.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
@@ -19,20 +20,15 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.provisioning.InMemoryUserDetailsManager;
-import org.springframework.security.provisioning.UserDetailsManager;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
-
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
 
 @EnableWebSecurity
 @Configuration
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 
-    @Autowired
-    UserService userService;
+   @Autowired
+    private CustomUserServiceDetails userServiceDetails;
 
     @Autowired
     private CustomJwtAuthenticationFilter customJwtAuthenticationFilter;
@@ -46,26 +42,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
                 .antMatchers("/authenticate").permitAll().anyRequest().authenticated()
                 .and().addFilterBefore(customJwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
-    }
-
-
-
-    @Bean
-    public UserDetailsService inMemoryUserDetailsManager() throws Exception {
-
-
-        InMemoryUserDetailsManager memoryUserDetailsManager = new InMemoryUserDetailsManager();
-        memoryUserDetailsManager.setAuthenticationManager(authenticationManagerBean());
-
-            UserDetails userDetails = User.withUsername("user")
-                    .password("1111")
-                    .authorities(Authorities.AUTHORITY)
-                    .passwordEncoder(passwordEncoder()::encode)
-                    .build();
-            memoryUserDetailsManager.createUser(userDetails);
-
-//        }
-        return memoryUserDetailsManager;
     }
 
     @Bean
@@ -82,6 +58,6 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     @Override
     protected void configure(AuthenticationManagerBuilder auth) throws Exception {
         auth.parentAuthenticationManager(authenticationManagerBean())
-                .userDetailsService(inMemoryUserDetailsManager());
+                .userDetailsService(userServiceDetails);
     }
 }

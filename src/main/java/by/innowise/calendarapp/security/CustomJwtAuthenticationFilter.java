@@ -29,7 +29,7 @@ public class CustomJwtAuthenticationFilter extends OncePerRequestFilter {
     private PasswordEncoder passwordEncoder;
 
     @Autowired
-    private UserDetailsService userDetailsService;
+    private CustomUserServiceDetails userDetailsService;
 
     private final JwtTokenProvider jwtTokenProvider;
 

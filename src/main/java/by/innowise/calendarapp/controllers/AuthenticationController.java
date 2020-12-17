@@ -3,6 +3,7 @@ package by.innowise.calendarapp.controllers;
 
 import by.innowise.calendarapp.repositories.UserRepository;
 import by.innowise.calendarapp.security.Authorities;
+import by.innowise.calendarapp.security.CustomUserServiceDetails;
 import by.innowise.calendarapp.security.JwtTokenProvider;
 import by.innowise.calendarapp.security.UserResponse;
 import by.innowise.calendarapp.services.UserService;
@@ -43,7 +44,7 @@ public class AuthenticationController {
 
 
     @Autowired
-    private UserDetailsService userDetailsService;
+    private CustomUserServiceDetails userDetailsService;
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
