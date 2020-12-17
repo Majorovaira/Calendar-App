@@ -14,7 +14,7 @@ public class ControllerResponseExceptionHandler extends ResponseEntityExceptionH
 
     @ExceptionHandler(value = AuthenticationException.class)
     protected ResponseEntity<?> handleExceptionUserNameNotFound(AuthenticationException e) {
-        return ResponseEntity.status(403)
+        return ResponseEntity.status(401)
                 .body(USER_NOT_AUTHENTICATED);
     }
 }
