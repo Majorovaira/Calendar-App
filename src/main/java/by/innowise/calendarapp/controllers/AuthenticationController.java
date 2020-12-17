@@ -1,31 +1,46 @@
 package by.innowise.calendarapp.controllers;
 
 
-import by.innowise.calendarapp.model.User;
+import by.innowise.calendarapp.security.Authorities;
 import by.innowise.calendarapp.security.JwtTokenProvider;
+import by.innowise.calendarapp.security.UserResponse;
+import by.innowise.calendarapp.services.UserService;
 import io.jsonwebtoken.impl.DefaultClaims;
+import liquibase.license.LicenseService;
 import lombok.AllArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import javax.servlet.http.HttpServletRequest;
-import java.util.HashMap;
-import java.util.Map;
+import javax.servlet.http.HttpServletResponse;
+import java.net.http.HttpResponse;
+import java.util.*;
 
+@Slf4j
 @RestController
 public class AuthenticationController {
 
     @Autowired
     private AuthenticationManager authenticationManager;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
 
     @Autowired
     private UserDetailsService userDetailsService;
@@ -34,15 +49,35 @@ public class AuthenticationController {
     private JwtTokenProvider jwtTokenProvider;
 
     @PostMapping("/authenticate")
-    public ResponseEntity<?> createAuthenticationToken(@RequestBody User user) {
-        authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(user.getName(), user.getPassword()));
-        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getName());
-        String token = jwtTokenProvider.generateToken(userDetails);
-        return ResponseEntity.ok(token);
-    }
+    public ResponseEntity<?> createAuthenticationToken(@RequestBody UserResponse userResponse) throws Exception {
+       try {
+           authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userResponse.getName(), userResponse.getPassword(), List.of(Authorities.AUTHORITY)));
+       }
 
+       catch (DisabledException e) {
+
+           throw new Exception("USER_DISABLED", e);
+
+       }
+       catch (BadCredentialsException e) {
+
+           throw new Exception("INVALID_CREDENTIALS", e);
+
+       }
+        UserDetails userDetails = userDetailsService.loadUserByUsername(userResponse.getName());
+
+
+        String accessToken = jwtTokenProvider.generateToken(userDetails);
+        String refreshToken = jwtTokenProvider.getRefreshToken(userDetails.getUsername());
+
+
+
+        return ResponseEntity.ok()
+                .header(HttpHeaders.AUTHORIZATION, accessToken)
+                .body(refreshToken);
+    }
     @PostMapping("/refreshtoken")
-    public ResponseEntity<?> refreshToken(HttpServletRequest request) {
+    public ResponseEntity<?> controllerRefreshToken(HttpServletRequest request) {
         DefaultClaims claims = (io.jsonwebtoken.impl.DefaultClaims) request.getAttribute("claims");
 
         Map<String, Object> expectedMap = getMapFromIoJsonwebtokenClaims(claims);

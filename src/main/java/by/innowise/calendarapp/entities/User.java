@@ -1,4 +1,4 @@
-package by.innowise.calendarapp.model;
+package by.innowise.calendarapp.entities;
 
 import lombok.Data;
 import org.springframework.data.annotation.CreatedDate;
@@ -36,10 +36,13 @@ public class User {
     @Column(name = "updated")
     private LocalDate updated;
 
-    @OneToMany(fetch = FetchType.LAZY)
-    @JoinTable(name = "user_tasks",
-    joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "id")
-    }, inverseJoinColumns = {@JoinColumn(name = "task_id", referencedColumnName = "id")})
-    private List<Task> tasks;
+    @Column
+    private String status;
+//
+//    @OneToMany(fetch = FetchType.LAZY)
+//    @JoinTable(name = "user_tasks",
+//    joinColumns = {@JoinColumn(name = "user_id", referencedColumnName = "id")
+//    }, inverseJoinColumns = {@JoinColumn(name = "task_id", referencedColumnName = "id")})
+//    private List<Task> tasks;
 
 }

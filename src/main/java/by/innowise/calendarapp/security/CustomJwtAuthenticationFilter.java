@@ -1,11 +1,14 @@
 package by.innowise.calendarapp.security;
 
+import by.innowise.calendarapp.services.UserService;
 import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
 
@@ -15,17 +18,25 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 
+
+@Component
 public class CustomJwtAuthenticationFilter extends OncePerRequestFilter {
 
 
-    private final UserDetailsService userDetailsService;
+    private final UserService userService;
+
+    @Autowired
+    private PasswordEncoder passwordEncoder;
+
+    @Autowired
+    private UserDetailsService userDetailsService;
 
     private final JwtTokenProvider jwtTokenProvider;
 
     @Autowired
-    public CustomJwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, UserDetailsService userDetailsService) {
+    public CustomJwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, UserService userService) {
         this.jwtTokenProvider = jwtTokenProvider;
-        this.userDetailsService = userDetailsService;
+        this.userService = userService;
     }
 
     @Override
@@ -33,9 +44,11 @@ public class CustomJwtAuthenticationFilter extends OncePerRequestFilter {
         try {
             String jwtToken = extractJwtFromRequest(httpServletRequest);
             if (StringUtils.hasText(jwtToken) && jwtTokenProvider.validateToken(jwtToken)) {
-                UserDetails userDetails = userDetailsService.loadUserByUsername(jwtTokenProvider.getUsernameFromToken(jwtToken));
+                String userName = jwtTokenProvider.getUsernameFromToken(jwtToken);
+                UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
+
                 UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
-                        userDetails.getUsername(), userDetails.getPassword());
+                        userDetails.getUsername(), userDetails.getPassword(), userDetails.getAuthorities());
 
                 SecurityContextHolder.getContext().setAuthentication(token);
             }
@@ -49,7 +62,6 @@ public class CustomJwtAuthenticationFilter extends OncePerRequestFilter {
             else {
                 httpServletRequest.setAttribute("exception ", e);
             }
-
         }
         filterChain.doFilter(httpServletRequest, httpServletResponse);
 
@@ -69,6 +81,6 @@ public class CustomJwtAuthenticationFilter extends OncePerRequestFilter {
         if(StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
             return bearerToken.substring(7, bearerToken.length());
         }
-        return null;
+        return "";
     }
 }

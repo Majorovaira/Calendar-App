@@ -1,15 +1,12 @@
-package by.innowise.calendarapp.services.ifaces;
+package by.innowise.calendarapp.services;
 
 
-import by.innowise.calendarapp.model.User;
-
-import java.util.List;
+import by.innowise.calendarapp.entities.User;
 
 public interface UserService {
 
    User getUserById(long id);
    User getUserByName(String name);
-   User register(User user);
    Iterable<User> getAllUsers();
    void delete(Long id);
 

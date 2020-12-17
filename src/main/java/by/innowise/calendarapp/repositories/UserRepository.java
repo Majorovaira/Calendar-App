@@ -1,6 +1,6 @@
 package by.innowise.calendarapp.repositories;
 
-import by.innowise.calendarapp.model.User;
+import by.innowise.calendarapp.entities.User;
 import org.springframework.data.repository.CrudRepository;
 import org.springframework.stereotype.Repository;
 

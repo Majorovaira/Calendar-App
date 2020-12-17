@@ -1,16 +1,19 @@
 server:
-  port: 8085
+  port: 8090
+
 
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:8083/calendar
+    url: jdbc:postgresql://localhost:5432/calendar
     driver-class-name: org.postgresql.Driver
     password: root
     username: root
+    hikari:
+      minimum-idle: 5
 
   liquibase:
     change-log: classpath:db.changelog-master.xml
-    url: jdbc:postgresql://localhost:8083/calendar
+    url: jdbc:postgresql://localhost:5432/calendar
     user: root
     password: root
     enabled: true

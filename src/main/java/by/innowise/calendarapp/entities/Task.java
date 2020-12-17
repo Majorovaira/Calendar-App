@@ -1,4 +1,4 @@
-package by.innowise.calendarapp.model;
+package by.innowise.calendarapp.entities;
 
 import lombok.Data;
 
