@@ -10,6 +10,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.util.*;
 
+
 @Service
 public class JwtTokenProvider {
 
@@ -23,12 +24,9 @@ public class JwtTokenProvider {
     private long expirationRefreshToken;
 
 
-    @PostConstruct
-    protected void init() {
-        secret = Base64.getEncoder().encodeToString(secret.getBytes());
-    }
 
     public String generateToken(UserDetails userDetails) {
+
 
         return Jwts.builder()
                 .setSubject(userDetails.getUsername())

@@ -51,19 +51,11 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 
     @Bean
-    public UserDetailsService inMemoryUserDetailsManager() {
+    public UserDetailsService inMemoryUserDetailsManager() throws Exception {
+
 
         InMemoryUserDetailsManager memoryUserDetailsManager = new InMemoryUserDetailsManager();
-        Iterable<by.innowise.calendarapp.entities.User> usersFromDb = userService.getAllUsers();
-
-//        for (by.innowise.calendarapp.entities.User user : usersFromDb) {
-//
-//            UserDetails userDetails = User.withUsername(user.getName())
-//                    .password(user.getPassword())
-//                    .authorities(Authorities.AUTHORITY)
-//                    .passwordEncoder(passwordEncoder()::encode)
-//                    .build();
-//            memoryUserDetailsManager.createUser(userDetails);
+        memoryUserDetailsManager.setAuthenticationManager(authenticationManagerBean());
 
             UserDetails userDetails = User.withUsername("user")
                     .password("1111")

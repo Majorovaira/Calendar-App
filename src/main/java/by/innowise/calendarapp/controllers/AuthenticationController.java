@@ -1,6 +1,7 @@
 package by.innowise.calendarapp.controllers;
 
 
+import by.innowise.calendarapp.repositories.UserRepository;
 import by.innowise.calendarapp.security.Authorities;
 import by.innowise.calendarapp.security.JwtTokenProvider;
 import by.innowise.calendarapp.security.UserResponse;
@@ -12,20 +13,20 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.DisabledException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.context.annotation.RequestScope;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -48,10 +49,13 @@ public class AuthenticationController {
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
 
-    @PostMapping("/authenticate")
+    @PostMapping(value = "/authenticate")
     public ResponseEntity<?> createAuthenticationToken(@RequestBody UserResponse userResponse) throws Exception {
+   //     System.out.println(userResponse.get(HttpHeaders.AUTHORIZATION));
        try {
-           authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userResponse.getName(), userResponse.getPassword(), List.of(Authorities.AUTHORITY)));
+           System.out.println(userResponse.getName() + " response " + userResponse.getPassword());
+           System.out.println(authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userResponse.getName(), userResponse.getPassword(), List.of(Authorities.AUTHORITY))));
+
        }
 
        catch (DisabledException e) {
@@ -72,6 +76,8 @@ public class AuthenticationController {
 
 
 
+//        return ResponseEntity.ok("ok");
+//        return ResponseEntity.ok(accessToken);
         return ResponseEntity.ok()
                 .header(HttpHeaders.AUTHORIZATION, accessToken)
                 .body(refreshToken);
