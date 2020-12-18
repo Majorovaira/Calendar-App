@@ -51,12 +51,10 @@ public class AuthenticationController {
 
     }
     @PostMapping("/refreshtoken")
-    public ResponseEntity<?> controllerRefreshToken(HttpServletRequest request) {
-        DefaultClaims claims = (io.jsonwebtoken.impl.DefaultClaims) request.getAttribute("claims");
+    public ResponseEntity<?> controllerRefreshToken(@RequestBody String refreshToken) {
 
-        Map<String, Object> expectedMap = getMapFromIoJsonwebtokenClaims(claims);
-        String token = jwtTokenProvider.getRefreshToken(expectedMap.get("sub").toString());
-        return ResponseEntity.ok(token);
+      //  String token = jwtTokenProvider.getRefreshToken(expectedMap.get("sub").toString());
+        return ResponseEntity.ok(refreshToken);
 
     }
 

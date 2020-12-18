@@ -2,6 +2,7 @@ package by.innowise.calendarapp.security.utils;
 
 
 import io.jsonwebtoken.*;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -10,7 +11,7 @@ import org.springframework.stereotype.Service;
 import javax.annotation.PostConstruct;
 import java.util.*;
 
-
+@Slf4j
 @Service
 public class JwtTokenProvider {
 
@@ -27,7 +28,7 @@ public class JwtTokenProvider {
 
     public String generateToken(String userName) {
 
-
+        log.info("generate token with exp time " + expirationAuthToken);
         return Jwts.builder()
                 .setSubject(userName)
                 .setIssuedAt(new Date(System.currentTimeMillis()))

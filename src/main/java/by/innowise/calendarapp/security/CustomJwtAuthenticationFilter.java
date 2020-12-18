@@ -1,6 +1,7 @@
 package by.innowise.calendarapp.security;
 
 import by.innowise.calendarapp.security.utils.JwtTokenProvider;
+import by.innowise.calendarapp.services.TokenPairService;
 import by.innowise.calendarapp.services.UserService;
 import io.jsonwebtoken.ExpiredJwtException;
 import lombok.extern.slf4j.Slf4j;
@@ -24,21 +25,22 @@ import java.io.IOException;
 @Component
 public class CustomJwtAuthenticationFilter extends OncePerRequestFilter {
 
+    private TokenPairService tokenPairService;
 
-    private final UserService userService;
-
-    @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Autowired
+
     private CustomUserServiceDetails userDetailsService;
 
-    private final JwtTokenProvider jwtTokenProvider;
+    private JwtTokenProvider jwtTokenProvider;
 
     @Autowired
-    public CustomJwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider, UserService userService) {
+    public CustomJwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider,PasswordEncoder passwordEncoder, CustomUserServiceDetails customUserServiceDetails, TokenPairService tokenPairService) {
         this.jwtTokenProvider = jwtTokenProvider;
-        this.userService = userService;
+        this.userDetailsService = customUserServiceDetails;
+        this.passwordEncoder = passwordEncoder;
+        this.tokenPairService = tokenPairService;
+
     }
 
     @Override
@@ -49,22 +51,22 @@ public class CustomJwtAuthenticationFilter extends OncePerRequestFilter {
             if (StringUtils.hasText(jwtToken) && jwtTokenProvider.validateToken(jwtToken)) {
                 String userName = jwtTokenProvider.getUsernameFromToken(jwtToken);
                 UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
-
                 UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
                         userDetails.getUsername(), userDetails.getPassword(), userDetails.getAuthorities());
-
                 SecurityContextHolder.getContext().setAuthentication(token);
             }
         }
         catch(ExpiredJwtException e) {
-            String isRefreshToken = httpServletRequest.getHeader("isRefreshToken");
-            String requestUrl = httpServletRequest.getRequestURL().toString();
-            if(isRefreshToken != null && isRefreshToken.equals(true) && requestUrl.contains("refreshtoken")) {
-                allowForRefreshToken(e, httpServletRequest);
-            }
-            else {
-                httpServletRequest.setAttribute("exception ", e);
-            }
+            log.info("expired");
+//            String isRefreshToken = httpServletRequest.getHeader("isRefreshToken");
+//            String requestUrl = httpServletRequest.getRequestURL().toString();
+//            if(isRefreshToken != null && isRefreshToken.equals(true) && requestUrl.contains("refreshtoken")) {
+//                allowForRefreshToken(e, httpServletRequest);
+//            }
+//            else {
+//                httpServletRequest.setAttribute("exception ", e);
+//            }
+            httpServletResponse.setStatus(403);
         }
         filterChain.doFilter(httpServletRequest, httpServletResponse);
 

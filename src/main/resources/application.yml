@@ -29,7 +29,7 @@ secret.key:
   secret
 
 auth.token.life:
-  120000
+  0
 
 refresh.token.life:
   2592000000
