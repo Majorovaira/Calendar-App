@@ -3,8 +3,10 @@ server:
 
 
 spring:
+  main:
+    banner-mode: off
   datasource:
-    url: jdbc:postgresql://localhost:8083/calendar
+    url: jdbc:postgresql://localhost:5432/calendar
     driver-class-name: org.postgresql.Driver
     password: root
     username: root
@@ -13,7 +15,7 @@ spring:
 
   liquibase:
     change-log: classpath:db.changelog-master.xml
-    url: jdbc:postgresql://localhost:8083/calendar
+    url: jdbc:postgresql://localhost:5432/calendar
     user: root
     password: root
     enabled: true

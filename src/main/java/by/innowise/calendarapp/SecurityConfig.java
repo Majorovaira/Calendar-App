@@ -1,15 +1,14 @@
-package by.innowise.calendarapp.config;
+package by.innowise.calendarapp;
 
-import by.innowise.calendarapp.controllers.ControllerResponseExceptionHandler;
-import by.innowise.calendarapp.security.CustomJwtAuthenticationFilter;
+import by.innowise.calendarapp.security.filters.CustomJwtAuthenticationFilter;
 import by.innowise.calendarapp.security.CustomUserServiceDetails;
-import by.innowise.calendarapp.security.JwtAuthenticationEntryPoint;
+import by.innowise.calendarapp.security.filters.ExceptionHandlerFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.Lazy;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
+import org.springframework.security.config.annotation.method.configuration.EnableGlobalMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
@@ -18,20 +17,21 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
-
+@EnableGlobalMethodSecurity(prePostEnabled = true)
 @EnableWebSecurity
 @Configuration
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
 
+    @Autowired
+    private ExceptionHandlerFilter exceptionHandlerFilter;
    @Autowired
     private CustomUserServiceDetails userServiceDetails;
 
     @Autowired
     private CustomJwtAuthenticationFilter customJwtAuthenticationFilter;
 
-    @Autowired
-    private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
+
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -41,8 +41,9 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
         http.authorizeRequests()
                 .antMatchers("/authenticate").permitAll().anyRequest().authenticated()
                 .and().exceptionHandling()
-                .and().exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint)
-                .and().addFilterBefore(customJwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+                .and() .addFilterBefore(customJwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class)
+                .addFilterBefore(exceptionHandlerFilter, CustomJwtAuthenticationFilter.class);
+
 
     }
 

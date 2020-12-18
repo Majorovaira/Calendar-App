@@ -10,6 +10,9 @@ import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
+import java.time.Instant;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.*;
 import java.util.function.Function;
 
@@ -41,6 +44,7 @@ public class JwtTokenProvider {
                 .signWith(SignatureAlgorithm.HS512, secret)
                 .compact();
 
+
     }
 
     public String getRefreshToken(String subject) {
@@ -56,9 +60,16 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    public boolean validateToken(String authToken, UserDetails userDetails) {
-       final String userName = getUsernameFromToken(authToken);
-       return (userName.equals(userDetails.getUsername()) && !isTokenExpired(authToken));
+    public boolean validateToken(String authToken) {
+
+        try {
+            Jws<Claims> claims = Jwts.parser().setSigningKey(secret).parseClaimsJws(authToken);
+            return true;
+        }
+        catch (ExpiredJwtException e) {
+            throw e;
+        }
+
     }
 
     public String getUsernameFromToken(String token) {
@@ -71,7 +82,12 @@ public class JwtTokenProvider {
     }
 
     private Boolean isTokenExpired(String token) {
-        extractClaim(token, Claims::getExpiration).before(new Date());
+        return returnExpDate(token).before(new Date());
+    }
+
+    private Date returnExpDate(String token) {
+       Date date = extractClaim(token, Claims::getExpiration);
+        return date;
     }
 
     public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {

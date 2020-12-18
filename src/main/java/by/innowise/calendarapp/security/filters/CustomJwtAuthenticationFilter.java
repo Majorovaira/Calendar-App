@@ -1,9 +1,11 @@
-package by.innowise.calendarapp.security;
+package by.innowise.calendarapp.security.filters;
 
+import by.innowise.calendarapp.security.CustomUserServiceDetails;
 import by.innowise.calendarapp.security.utils.JwtTokenProvider;
 import by.innowise.calendarapp.services.TokenPairService;
 import by.innowise.calendarapp.services.UserService;
 import io.jsonwebtoken.ExpiredJwtException;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -12,7 +14,9 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
+import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.filter.OncePerRequestFilter;
+import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExceptionHandler;
 
 import javax.servlet.FilterChain;
 import javax.servlet.ServletException;
@@ -26,54 +30,29 @@ import java.io.IOException;
 public class CustomJwtAuthenticationFilter extends OncePerRequestFilter {
 
     @Autowired
-    private TokenPairService tokenPairService;
-    @Autowired
-
-    private PasswordEncoder passwordEncoder;
-
-    @Autowired
 
     private CustomUserServiceDetails userDetailsService;
     @Autowired
 
     private JwtTokenProvider jwtTokenProvider;
 
-//    @Autowired
-//    public CustomJwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider,PasswordEncoder passwordEncoder, CustomUserServiceDetails customUserServiceDetails, TokenPairService tokenPairService) {
-//        this.jwtTokenProvider = jwtTokenProvider;
-//        this.userDetailsService = customUserServiceDetails;
-//        this.passwordEncoder = passwordEncoder;
-//        this.tokenPairService = tokenPairService;
-//
-//    }
 
+    @SneakyThrows
     @Override
     protected void doFilterInternal(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, FilterChain filterChain) throws ServletException, IOException {
-        try {
+
             log.info("start filter");
             String jwtToken = extractJwtFromRequest(httpServletRequest);
-            String userName = jwtTokenProvider.getUsernameFromToken(jwtToken);
-            if (userName != null && StringUtils.hasText(jwtToken) && jwtTokenProvider.validateToken(jwtToken)) {
-                log.info("valid token");
-
+            if (StringUtils.hasText(jwtToken) && jwtTokenProvider.validateToken(jwtToken)) {
+                String userName = jwtTokenProvider.getUsernameFromToken(jwtToken);
                 UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
                 UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
                         userDetails.getUsername(), userDetails.getPassword(), userDetails.getAuthorities());
                 SecurityContextHolder.getContext().setAuthentication(token);
+                log.info("valid token");
             }
-        }
-        catch(ExpiredJwtException e) {
-            log.info("expired");
-//            String isRefreshToken = httpServletRequest.getHeader("isRefreshToken");
-//            String requestUrl = httpServletRequest.getRequestURL().toString();
-//            if(isRefreshToken != null && isRefreshToken.equals(true) && requestUrl.contains("refreshtoken")) {
-//                allowForRefreshToken(e, httpServletRequest);
-//            }
-//            else {
-//                httpServletRequest.setAttribute("exception ", e);
-//            }
-            httpServletResponse.setStatus(403);
-        }
+
+
         filterChain.doFilter(httpServletRequest, httpServletResponse);
 
 
