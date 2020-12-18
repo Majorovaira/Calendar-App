@@ -4,8 +4,10 @@ package by.innowise.calendarapp.controllers;
 import by.innowise.calendarapp.security.utils.Authorities;
 import by.innowise.calendarapp.security.CustomUserServiceDetails;
 import by.innowise.calendarapp.security.utils.JwtTokenProvider;
+import by.innowise.calendarapp.services.TokenPairService;
 import io.jsonwebtoken.impl.DefaultClaims;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.tomcat.websocket.AuthenticationException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseEntity;
@@ -24,9 +26,9 @@ public class AuthenticationController {
     @Autowired
     private AuthenticationManager authenticationManager;
 
-
     @Autowired
-    private CustomUserServiceDetails userDetailsService;
+    private TokenPairService tokenPairService;
+
 
     @Autowired
     private JwtTokenProvider jwtTokenProvider;
@@ -38,10 +40,11 @@ public class AuthenticationController {
            String userName = userAndPasswordEncode[0];
            String password = userAndPasswordEncode[1];
            authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(userName, password, List.of(Authorities.AUTHORITY)));
-           log.info("end authent");
+
            log.info("start generate tokens");
-           String accessToken = jwtTokenProvider.generateToken(userName);
-           String refreshToken = jwtTokenProvider.getRefreshToken(userName);
+           String accessToken = jwtTokenProvider.generateAccessToken(userName);
+           String refreshToken = jwtTokenProvider.generateRefreshToken(userName);
+         tokenPairService.saveTokenPair(userName, accessToken, refreshToken);
            return ResponseEntity.ok()
                    .header(HttpHeaders.AUTHORIZATION, accessToken)
                    .body(refreshToken);
@@ -51,20 +54,18 @@ public class AuthenticationController {
 
     }
     @PostMapping("/refreshtoken")
-    public ResponseEntity<?> controllerRefreshToken(@RequestBody String refreshToken) {
-
-      //  String token = jwtTokenProvider.getRefreshToken(expectedMap.get("sub").toString());
-        return ResponseEntity.ok(refreshToken);
-
-    }
-
-    public Map<String, Object> getMapFromIoJsonwebtokenClaims(DefaultClaims claims) {
-        Map<String, Object> expectedMap = new HashMap<String, Object>();
-        for (Map.Entry<String, Object> entry : claims.entrySet()) {
-            expectedMap.put(entry.getKey(), entry.getValue());
+    public ResponseEntity<?> controllerRefreshToken(@RequestBody String refreshToken) throws AuthenticationException {
+        log.info("start refresh");
+        String userName = jwtTokenProvider.getUsernameFromToken(refreshToken);
+        if(tokenPairService.validateRefreshTokenAndUpdateIfValid(refreshToken)) {
+           return ResponseEntity.ok()
+                    .header(HttpHeaders.AUTHORIZATION, tokenPairService.getAccessTokenByUserName(userName))
+                    .body(tokenPairService.getRefreshTokenByUserName(userName));
         }
-        return expectedMap;
+        throw new AuthenticationException("your refresh token gavno");
+
     }
+
 
     private String getUsernameAndPasswordFromHeaders(String header) throws Exception {
         if(StringUtils.hasText(header) && header.contains("Basic ")) {

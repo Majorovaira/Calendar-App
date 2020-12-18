@@ -6,4 +6,8 @@ public interface TokenPairService {
     boolean validateAccessToken(String userName, String accessToken);
     String getAccessTokenByUserName(String userName);
     String getRefreshTokenByUserName(String userName);
+    void updateAccessAndRefreshToken(String userName, String accessToken, String refreshToken);
+    boolean validateRefreshTokenAndUpdateIfValid(String oldRefreshToken);
+
+    void saveTokenPair(String userName, String accessToken, String refreshToken);
 }

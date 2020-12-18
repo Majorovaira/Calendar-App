@@ -13,6 +13,7 @@ import javax.persistence.*;
 @Setter
 @NoArgsConstructor
 @AllArgsConstructor
+@Table(name = "user_tokens")
 public class TokenPair {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)

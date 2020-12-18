@@ -31,7 +31,7 @@ public class JwtTokenProvider {
 
 
 
-    public String generateToken(String userName) {
+    public String generateAccessToken(String userName) {
 
         Map<String, Object> claims = new HashMap<>();
         claims.put("isAdmin", true);
@@ -47,13 +47,13 @@ public class JwtTokenProvider {
 
     }
 
-    public String getRefreshToken(String subject) {
+    public String generateRefreshToken(String userName) {
 
         Map<String, Object> claims = new HashMap<>();
         claims.put("isAdmin", true);
         return Jwts.builder()
                 .setClaims(claims)
-                .setSubject(subject)
+                .setSubject(userName)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expirationRefreshToken))
                 .signWith(SignatureAlgorithm.HS512, secret)

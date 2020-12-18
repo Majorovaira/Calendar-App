@@ -23,6 +23,7 @@ import javax.servlet.ServletException;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.util.stream.Collectors;
 
 
 @Slf4j
@@ -40,9 +41,9 @@ public class CustomJwtAuthenticationFilter extends OncePerRequestFilter {
     @SneakyThrows
     @Override
     protected void doFilterInternal(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, FilterChain filterChain) throws ServletException, IOException {
-
             log.info("start filter");
             String jwtToken = extractJwtFromRequest(httpServletRequest);
+            log.info(jwtToken);
             if (StringUtils.hasText(jwtToken) && jwtTokenProvider.validateToken(jwtToken)) {
                 String userName = jwtTokenProvider.getUsernameFromToken(jwtToken);
                 UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
@@ -51,8 +52,7 @@ public class CustomJwtAuthenticationFilter extends OncePerRequestFilter {
                 SecurityContextHolder.getContext().setAuthentication(token);
                 log.info("valid token");
             }
-
-
+            log.info("before chain");
         filterChain.doFilter(httpServletRequest, httpServletResponse);
 
 

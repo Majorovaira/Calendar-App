@@ -15,11 +15,13 @@ public class ExceptionHandlerFilter extends OncePerRequestFilter {
     @Override
     protected void doFilterInternal(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, FilterChain filterChain) throws ServletException, IOException {
         try {
+
             filterChain.doFilter(httpServletRequest, httpServletResponse);
+
         }
         catch (ExpiredJwtException e) {
             httpServletResponse.setStatus(403);
-            httpServletResponse.getWriter().write("your token expired");
+            httpServletResponse.getWriter().write("your token gavno");
         }
     }
 }
