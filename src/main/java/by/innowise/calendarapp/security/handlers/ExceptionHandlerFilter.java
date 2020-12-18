@@ -1,4 +1,4 @@
-package by.innowise.calendarapp.security.filters;
+package by.innowise.calendarapp.security.handlers;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import org.springframework.stereotype.Component;

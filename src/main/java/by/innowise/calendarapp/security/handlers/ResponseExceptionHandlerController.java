@@ -1,4 +1,4 @@
-package by.innowise.calendarapp.controllers;
+package by.innowise.calendarapp.security.handlers;
 
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.SignatureException;

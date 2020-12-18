@@ -2,7 +2,7 @@ package by.innowise.calendarapp;
 
 import by.innowise.calendarapp.security.filters.CustomJwtAuthenticationFilter;
 import by.innowise.calendarapp.security.CustomUserServiceDetails;
-import by.innowise.calendarapp.security.filters.ExceptionHandlerFilter;
+import by.innowise.calendarapp.security.handlers.ExceptionHandlerFilter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
