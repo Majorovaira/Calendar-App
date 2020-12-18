@@ -1,7 +1,9 @@
 package by.innowise.calendarapp.config;
 
+import by.innowise.calendarapp.controllers.ControllerResponseExceptionHandler;
 import by.innowise.calendarapp.security.CustomJwtAuthenticationFilter;
 import by.innowise.calendarapp.security.CustomUserServiceDetails;
+import by.innowise.calendarapp.security.JwtAuthenticationEntryPoint;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -16,6 +18,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
+
 @EnableWebSecurity
 @Configuration
 public class SecurityConfig extends WebSecurityConfigurerAdapter {
@@ -25,8 +28,10 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
     private CustomUserServiceDetails userServiceDetails;
 
     @Autowired
-    @Lazy
     private CustomJwtAuthenticationFilter customJwtAuthenticationFilter;
+
+    @Autowired
+    private JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Override
     protected void configure(HttpSecurity http) throws Exception {
@@ -35,6 +40,8 @@ public class SecurityConfig extends WebSecurityConfigurerAdapter {
 
         http.authorizeRequests()
                 .antMatchers("/authenticate").permitAll().anyRequest().authenticated()
+                .and().exceptionHandling()
+                .and().exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint)
                 .and().addFilterBefore(customJwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
     }

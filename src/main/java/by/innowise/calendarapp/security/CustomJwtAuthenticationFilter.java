@@ -25,31 +25,37 @@ import java.io.IOException;
 @Component
 public class CustomJwtAuthenticationFilter extends OncePerRequestFilter {
 
+    @Autowired
     private TokenPairService tokenPairService;
+    @Autowired
 
     private PasswordEncoder passwordEncoder;
 
+    @Autowired
 
     private CustomUserServiceDetails userDetailsService;
+    @Autowired
 
     private JwtTokenProvider jwtTokenProvider;
 
-    @Autowired
-    public CustomJwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider,PasswordEncoder passwordEncoder, CustomUserServiceDetails customUserServiceDetails, TokenPairService tokenPairService) {
-        this.jwtTokenProvider = jwtTokenProvider;
-        this.userDetailsService = customUserServiceDetails;
-        this.passwordEncoder = passwordEncoder;
-        this.tokenPairService = tokenPairService;
-
-    }
+//    @Autowired
+//    public CustomJwtAuthenticationFilter(JwtTokenProvider jwtTokenProvider,PasswordEncoder passwordEncoder, CustomUserServiceDetails customUserServiceDetails, TokenPairService tokenPairService) {
+//        this.jwtTokenProvider = jwtTokenProvider;
+//        this.userDetailsService = customUserServiceDetails;
+//        this.passwordEncoder = passwordEncoder;
+//        this.tokenPairService = tokenPairService;
+//
+//    }
 
     @Override
     protected void doFilterInternal(HttpServletRequest httpServletRequest, HttpServletResponse httpServletResponse, FilterChain filterChain) throws ServletException, IOException {
         try {
             log.info("start filter");
             String jwtToken = extractJwtFromRequest(httpServletRequest);
-            if (StringUtils.hasText(jwtToken) && jwtTokenProvider.validateToken(jwtToken)) {
-                String userName = jwtTokenProvider.getUsernameFromToken(jwtToken);
+            String userName = jwtTokenProvider.getUsernameFromToken(jwtToken);
+            if (userName != null && StringUtils.hasText(jwtToken) && jwtTokenProvider.validateToken(jwtToken)) {
+                log.info("valid token");
+
                 UserDetails userDetails = userDetailsService.loadUserByUsername(userName);
                 UsernamePasswordAuthenticationToken token = new UsernamePasswordAuthenticationToken(
                         userDetails.getUsername(), userDetails.getPassword(), userDetails.getAuthorities());

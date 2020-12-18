@@ -6,13 +6,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.stereotype.Component;
 import org.springframework.stereotype.Service;
 
 import javax.annotation.PostConstruct;
 import java.util.*;
+import java.util.function.Function;
 
 @Slf4j
-@Service
+@Component
 public class JwtTokenProvider {
 
     @Value("${secret.key}")
@@ -28,8 +30,11 @@ public class JwtTokenProvider {
 
     public String generateToken(String userName) {
 
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("isAdmin", true);
         log.info("generate token with exp time " + expirationAuthToken);
         return Jwts.builder()
+                .setClaims(claims)
                 .setSubject(userName)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expirationAuthToken))
@@ -39,7 +44,11 @@ public class JwtTokenProvider {
     }
 
     public String getRefreshToken(String subject) {
+
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("isAdmin", true);
         return Jwts.builder()
+                .setClaims(claims)
                 .setSubject(subject)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
                 .setExpiration(new Date(System.currentTimeMillis() + expirationRefreshToken))
@@ -47,20 +56,27 @@ public class JwtTokenProvider {
                 .compact();
     }
 
-    public boolean validateToken(String authToken) {
-        try {
-            Jws<Claims> claims = Jwts.parser().setSigningKey(secret).parseClaimsJws(authToken);
-            return true;
-        } catch (SignatureException | MalformedJwtException | UnsupportedJwtException | IllegalArgumentException ex) {
-            throw new BadCredentialsException("INVALID_CREDENTIALS", ex);
-        } catch (ExpiredJwtException ex) {
-            throw ex;
-        }
+    public boolean validateToken(String authToken, UserDetails userDetails) {
+       final String userName = getUsernameFromToken(authToken);
+       return (userName.equals(userDetails.getUsername()) && !isTokenExpired(authToken));
     }
 
     public String getUsernameFromToken(String token) {
-        Claims claims = Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
+        Claims claims = extractAllClaims(token);
         return claims.getSubject();
+    }
+
+    private Claims extractAllClaims(String token) {
+        return Jwts.parser().setSigningKey(secret).parseClaimsJws(token).getBody();
+    }
+
+    private Boolean isTokenExpired(String token) {
+        extractClaim(token, Claims::getExpiration).before(new Date());
+    }
+
+    public <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {
+        final Claims claims = extractAllClaims(token);
+        return claimsResolver.apply(claims);
     }
 
 }
